@@ -1,10 +1,11 @@
+from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 
 from .config import get_settings
 from .models import IngestRequest, QueryRequest
 from .service import RagService
 
-app = FastAPI(title="Vishnu RAG")
 _svc: RagService | None = None
 
 
@@ -13,6 +14,23 @@ def svc() -> RagService:
     if _svc is None:
         _svc = RagService(get_settings())
     return _svc
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        service = svc()
+        sources = await service.store.sources()
+        if not sources:
+            default_docs = Path(__file__).resolve().parent.parent / "data" / "docs"
+            if default_docs.is_dir():
+                await service.ingest_dir(str(default_docs))
+    except Exception:
+        pass
+    yield
+
+
+app = FastAPI(title="Vishnu RAG", lifespan=lifespan)
 
 
 @app.get("/")

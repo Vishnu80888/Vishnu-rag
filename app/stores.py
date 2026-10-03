@@ -2,6 +2,7 @@
 import math
 import uuid
 from collections import Counter
+from pathlib import Path
 from typing import Protocol
 
 from .config import Settings
@@ -10,7 +11,7 @@ from .providers import tokenize
 
 
 def _match(chunk: Chunk, filters: dict) -> bool:
-    return all(str(chunk.metadata.get(k)) == v for k, v in filters.items())
+    return all(str(chunk.metadata.get(k)) == str(v) for k, v in filters.items())
 
 
 class VectorStore(Protocol):
@@ -71,7 +72,11 @@ class QdrantStore:
         self.m = models
         self.s = s
         if s.qdrant_path:
-            self.client = AsyncQdrantClient(path=s.qdrant_path)
+            p = Path(s.qdrant_path)
+            if not p.is_absolute():
+                p = (Path(__file__).resolve().parent.parent / p).resolve()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            self.client = AsyncQdrantClient(path=str(p))
         else:
             self.client = AsyncQdrantClient(url=s.qdrant_url, api_key=s.qdrant_api_key or None)
         self.bm25 = SparseTextEmbedding("Qdrant/bm25")

@@ -17,7 +17,8 @@ def test_rrf_dedup_and_order():
 
 
 def client():
-    main._svc = RagService(Settings())
+    s = Settings(llm_provider="local", embedding_provider="local", vector_store_provider="memory")
+    main._svc = RagService(s)
     c = TestClient(main.app)
     assert c.post("/ingest", json={"directory": "data/docs"}).json()["documents"] >= 7
     return c
@@ -44,4 +45,5 @@ def test_filter_by_page():
 
 def test_fail_closed_on_empty_store():
     import asyncio
-    assert asyncio.run(RagService(Settings()).answer("anything"))["answer"] == NO_ANSWER
+    s = Settings(llm_provider="local", embedding_provider="local", vector_store_provider="memory")
+    assert asyncio.run(RagService(s).answer("anything"))["answer"] == NO_ANSWER

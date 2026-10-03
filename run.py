@@ -11,7 +11,12 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).parent
+if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+ROOT = Path(__file__).resolve().parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def setup():
@@ -35,17 +40,23 @@ def main():
         sys.exit(pytest.main(["-q", str(ROOT / "tests")]))
     elif cmd == "serve":
         import uvicorn
-        uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+        uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True, app_dir=str(ROOT))
     elif cmd in ("ingest", "ask"):
         from app.config import get_settings
         from app.service import RagService
         svc = RagService(get_settings())
+        docs_dir = str(ROOT / "data" / "docs")
         if cmd == "ingest":
-            d = sys.argv[2] if len(sys.argv) > 2 else "data/docs"
+            d = sys.argv[2] if len(sys.argv) > 2 else docs_dir
             print(asyncio.run(svc.ingest_dir(d)))
         else:
             q = " ".join(sys.argv[2:]) or input("Question: ")
-            asyncio.run(svc.ingest_dir("data/docs")) if get_settings().vector_store_provider == "memory" else None
+            if get_settings().vector_store_provider == "memory":
+                asyncio.run(svc.ingest_dir(docs_dir))
+            else:
+                sources = asyncio.run(svc.store.sources())
+                if not sources:
+                    asyncio.run(svc.ingest_dir(docs_dir))
             r = asyncio.run(svc.answer(q))
             print(r["answer"], "\n\nSources:", [(s["doc_id"], round(s["score"], 4)) for s in r["sources"]])
     else:

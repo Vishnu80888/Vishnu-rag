@@ -50,12 +50,22 @@ class OpenAICompatEmbedder:
         self.s = s
 
     async def embed(self, texts):
-        async with httpx.AsyncClient(timeout=60) as c:
-            r = await c.post(f"{self.s.openai_base_url}/embeddings",
-                             headers={"Authorization": f"Bearer {self.s.openai_api_key}"},
-                             json={"model": self.s.embedding_model, "input": texts})
-            r.raise_for_status()
-            return [d["embedding"] for d in sorted(r.json()["data"], key=lambda d: d["index"])]
+        if not texts:
+            return []
+        out = []
+        batch_size = 32
+        async with httpx.AsyncClient(timeout=120) as c:
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i : i + batch_size]
+                r = await c.post(
+                    f"{self.s.openai_base_url}/embeddings",
+                    headers={"Authorization": f"Bearer {self.s.openai_api_key}"},
+                    json={"model": self.s.embedding_model, "input": batch},
+                )
+                r.raise_for_status()
+                data = sorted(r.json()["data"], key=lambda d: d["index"])
+                out.extend(d["embedding"] for d in data)
+        return out
 
 
 class EchoLLM:
@@ -71,13 +81,23 @@ class OpenAICompatLLM:
 
     async def generate(self, system, user):
         async with httpx.AsyncClient(timeout=120) as c:
-            r = await c.post(f"{self.s.openai_base_url}/chat/completions",
-                             headers={"Authorization": f"Bearer {self.s.openai_api_key}"},
-                             json={"model": self.s.llm_model, "temperature": 0.1,
-                                   "messages": [{"role": "system", "content": system},
-                                                {"role": "user", "content": user}]})
+            r = await c.post(
+                f"{self.s.openai_base_url}/chat/completions",
+                headers={"Authorization": f"Bearer {self.s.openai_api_key}"},
+                json={
+                    "model": self.s.llm_model,
+                    "temperature": 0.1,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                },
+            )
             r.raise_for_status()
-            return r.json()["choices"][0]["message"]["content"]
+            content = r.json()["choices"][0]["message"].get("content") or ""
+            # Strip <think> tags from reasoning models
+            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
+            return content
 
 
 def build_embedder(s: Settings) -> Embedder:

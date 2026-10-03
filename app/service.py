@@ -20,17 +20,21 @@ class RagService:
     async def ingest_dir(self, directory: str, metadata: dict | None = None) -> dict:
         root = Path(directory)
         if not root.is_dir():
-            raise FileNotFoundError(directory)
+            alt = Path(__file__).resolve().parent.parent / directory
+            if alt.is_dir():
+                root = alt
+            else:
+                raise FileNotFoundError(directory)
         docs = chunks_total = 0
         for p in sorted(root.rglob("*")):
             if p.suffix.lower() not in {".txt", ".md"}:
                 continue
             text = p.read_text(encoding="utf-8")
             meta = dict(metadata or {})
-            m = re.match(r"<!--\s*source:\s*(\S+)\s*\|\s*page:\s*(\S+)\s*-->", text)
+            m = re.search(r"<!--\s*source:\s*(\S+)\s*\|\s*page:\s*(\S+)\s*-->", text)
             if m:
                 meta.update(source_url=m.group(1), page=m.group(2))
-                text = text[m.end():]
+                text = (text[:m.start()] + text[m.end():]).strip()
             chunks = chunk_text(p.relative_to(root).as_posix(), text,
                                 self.s.chunk_size, self.s.chunk_overlap, meta)
             if chunks:
