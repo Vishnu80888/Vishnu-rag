@@ -10,9 +10,13 @@ import sys
 from pathlib import Path
 
 # Add project root to sys.path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+ROOT_DIR = Path(__file__).resolve().parent.parent
+INNER_ROOT = ROOT_DIR / "vishnu-rag"
+for p in (ROOT_DIR, INNER_ROOT):
+    if p.exists() and str(p) not in sys.path:
+        sys.path.insert(0, str(p))
+
+DOCS_DIR = (INNER_ROOT / "data" / "docs") if (INNER_ROOT / "data" / "docs").exists() else (ROOT_DIR / "data" / "docs")
 
 import pytest
 from fastapi.testclient import TestClient
@@ -102,7 +106,7 @@ def rag_service():
     s = Settings(llm_provider="local", embedding_provider="local", vector_store_provider="memory")
     svc = RagService(s)
     import asyncio
-    docs_dir = str(PROJECT_ROOT / "data" / "docs")
+    docs_dir = str(DOCS_DIR)
     res = asyncio.run(svc.ingest_dir(docs_dir))
     assert res["documents"] >= 7
     return svc
@@ -138,7 +142,7 @@ def api_client():
     s = Settings(llm_provider="local", embedding_provider="local", vector_store_provider="memory")
     main._svc = RagService(s)
     c = TestClient(main.app)
-    docs_dir = str(PROJECT_ROOT / "data" / "docs")
+    docs_dir = str(DOCS_DIR)
     res = c.post("/ingest", json={"directory": docs_dir})
     assert res.status_code == 200
     return c
