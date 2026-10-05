@@ -11,8 +11,10 @@ import shutil
 import sys
 from pathlib import Path
 
-if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
+if sys.platform == "win32":
+    reconfigure_fn = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure_fn):
+        reconfigure_fn(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
