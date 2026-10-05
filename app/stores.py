@@ -141,7 +141,9 @@ class QdrantStore:
             pts, offset = await self.client.scroll(self.s.collection_name, limit=256, offset=offset,
                                                    with_payload=["doc_id"])
             for p in pts:
-                agg[p.payload["doc_id"]] = agg.get(p.payload["doc_id"], 0) + 1
+                if p.payload and "doc_id" in p.payload:
+                    doc = str(p.payload["doc_id"])
+                    agg[doc] = agg.get(doc, 0) + 1
             if offset is None:
                 break
         return [{"doc_id": d, "chunks": n} for d, n in sorted(agg.items())]
