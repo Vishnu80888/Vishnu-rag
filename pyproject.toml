@@ -3,9 +3,9 @@ requires = ["setuptools>=65.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vishnu-rag"
+name = "profi-rag"
 version = "0.1.0"
-description = "Grounded, high-precision hybrid RAG assistant for ProfileSity"
+description = "Grounded, high-precision hybrid RAG assistant for ProfileSity — powered by Profi"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
