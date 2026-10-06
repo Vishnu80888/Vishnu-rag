@@ -18,9 +18,16 @@ env/
 .coverage
 htmlcov/
 
-# Local vector store data
+# Local vector store data & caches
 data/qdrant_local/
+.fastembed_cache/
+
+# Logs
+*.log
 
 # IDE files
 .vscode/
 .idea/
+
+# Legacy nested artifact if any
+vishnu-rag/

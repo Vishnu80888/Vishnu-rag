@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=65.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vishnu-rag"
+version = "0.1.0"
+description = "Grounded, high-precision hybrid RAG assistant for ProfileSity"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi==0.142.2",
+    "uvicorn==0.54.0",
+    "pydantic==2.13.5",
+    "pydantic-settings==2.15.0",
+    "httpx==0.28.1",
+    "qdrant-client==1.19.1",
+    "fastembed==0.8.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+testpaths = ["tests"]
+pythonpath = ["."]

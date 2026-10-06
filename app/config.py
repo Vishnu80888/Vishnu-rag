@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     chunk_overlap: int = 100
     top_k: int = 5
     max_candidates: int = 20
+    docs_dir: str = "data/docs"
+    fastembed_model: str = "BAAI/bge-small-en-v1.5"
+    allow_arbitrary_ingest_path: bool = False
 
 
 @lru_cache

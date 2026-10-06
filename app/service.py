@@ -17,14 +17,31 @@ class RagService:
     def __init__(self, s: Settings):
         self.s, self.embedder, self.llm, self.store = s, build_embedder(s), build_llm(s), build_store(s)
 
-    async def ingest_dir(self, directory: str, metadata: dict | None = None) -> dict:
-        root = Path(directory)
-        if not root.is_dir():
-            alt = Path(__file__).resolve().parent.parent / directory
-            if alt.is_dir():
-                root = alt
+    async def ingest_dir(self, directory: str | None = None, metadata: dict | None = None) -> dict:
+        project_root = Path(__file__).resolve().parent.parent.resolve()
+        configured_docs = Path(getattr(self.s, "docs_dir", "data/docs"))
+        if not configured_docs.is_absolute():
+            configured_docs = (project_root / configured_docs).resolve()
+
+        if directory is None or (isinstance(directory, str) and directory.strip() == ""):
+            root = configured_docs
+        else:
+            cand = Path(directory)
+            if not cand.is_absolute():
+                cand = (project_root / cand).resolve()
             else:
-                raise FileNotFoundError(directory)
+                cand = cand.resolve()
+
+            # Security path validation: must be within project root
+            try:
+                cand.relative_to(project_root)
+            except ValueError:
+                if not getattr(self.s, "allow_arbitrary_ingest_path", False):
+                    raise ValueError(f"Access denied: directory '{directory}' is outside the allowed project directories.")
+
+            if not cand.is_dir():
+                raise FileNotFoundError(f"Directory not found: {directory}")
+            root = cand
         docs = chunks_total = 0
         for p in sorted(root.rglob("*")):
             if p.suffix.lower() not in {".txt", ".md"}:

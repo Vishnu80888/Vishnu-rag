@@ -100,8 +100,40 @@ class OpenAICompatLLM:
             return content
 
 
+class FastEmbedEmbedder:
+    """Local, offline neural semantic embeddings via ONNX (fastembed)."""
+
+    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5"):
+        self.model_name = model_name
+        self._model = None
+
+    def _get_model(self):
+        if self._model is None:
+            from fastembed import TextEmbedding
+            self._model = TextEmbedding(model_name=self.model_name)
+        return self._model
+
+    async def embed(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+        import asyncio
+        loop = asyncio.get_running_loop()
+
+        def _compute():
+            model = self._get_model()
+            embeddings_gen = model.embed(texts)
+            return [vec.tolist() for vec in embeddings_gen]
+
+        return await loop.run_in_executor(None, _compute)
+
+
 def build_embedder(s: Settings) -> Embedder:
-    return OpenAICompatEmbedder(s) if s.embedding_provider == "openai_compatible" else HashEmbedder(s.embedding_dimension)
+    if s.embedding_provider == "fastembed":
+        return FastEmbedEmbedder(getattr(s, "fastembed_model", "BAAI/bge-small-en-v1.5"))
+    elif s.embedding_provider == "openai_compatible":
+        return OpenAICompatEmbedder(s)
+    else:
+        return HashEmbedder(s.embedding_dimension)
 
 
 def build_llm(s: Settings) -> LLM:
