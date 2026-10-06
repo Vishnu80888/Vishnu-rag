@@ -41,7 +41,7 @@ class Text(HTMLParser):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    with httpx.Client(timeout=30, follow_redirects=True, headers={"User-Agent": "VishnuRAG/1.0"}) as c:
+    with httpx.Client(timeout=30, follow_redirects=True, headers={"User-Agent": "Profi/1.0"}) as c:
         for name, path in PAGES.items():
             r = c.get(BASE + path)
             r.raise_for_status()

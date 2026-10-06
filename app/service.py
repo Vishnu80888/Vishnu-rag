@@ -8,14 +8,22 @@ from .providers import build_embedder, build_llm
 from .retrieval import rrf_fuse
 from .stores import build_store
 
-SYSTEM = ("You are Vishnu RAG, the knowledge assistant for the ProfileSity study-abroad platform. You answer strictly from the provided CONTEXT. Cite sources as [doc_id#chunk_index]. "
-          "If the context does not contain the answer, say you don't have enough information. Never invent facts.")
+SYSTEM = (
+    "You are Profi, the AI study-abroad advisor and knowledge assistant for the ProfileSity platform. "
+    "You answer strictly from the provided CONTEXT. "
+    "Cite sources as [doc_id#chunk_index]. "
+    "If the context does not contain the answer, say you don't have enough information. "
+    "Never invent facts."
+)
 NO_ANSWER = "I don't have enough grounded information in the knowledge base to answer that."
 
 
 class RagService:
     def __init__(self, s: Settings):
-        self.s, self.embedder, self.llm, self.store = s, build_embedder(s), build_llm(s), build_store(s)
+        self.s = s
+        self.embedder = build_embedder(s)
+        self.llm = build_llm(s)
+        self.store = build_store(s)
 
     async def ingest_dir(self, directory: str | None = None, metadata: dict | None = None) -> dict:
         project_root = Path(__file__).resolve().parent.parent.resolve()

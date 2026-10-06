@@ -1,8 +1,8 @@
-# Vishnu RAG (Profi — AI Study Abroad Advisor)
+# Profi — AI Study Abroad Advisor
 
 > Grounded, high-precision hybrid RAG assistant designed for the **ProfileSity** study-abroad platform ([codejobz.com](https://www.codejobz.com/)).
 
-Vishnu RAG powers **Profi**, an AI study-abroad counselor that helps students navigate university admissions, program prerequisites, visa timelines, and verified advisors across 500+ global partner institutions.
+Profi is ProfileSity's AI study-abroad counselor that helps students navigate university admissions, program prerequisites, visa timelines, and verified advisors across 500+ global partner institutions.
 
 ---
 
@@ -68,7 +68,7 @@ User Question
 The repository uses a single, flat root structure:
 
 ```text
-vishnu-rag/
+profi-rag/
 ├── app/
 │   ├── __init__.py
 │   ├── chunking.py          # Sliding-window chunker with boundary heuristics

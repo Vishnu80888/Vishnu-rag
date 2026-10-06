@@ -1,4 +1,4 @@
-"""Comprehensive test suite for Vishnu RAG.
+"""Comprehensive test suite for Profi (ProfileSity RAG Assistant).
 Covers:
 1. Unit Tests (Chunking, Hashing, Tokenizer, FastEmbed, RRF Fusion)
 2. Store & Retrieval Tests (Dense, Sparse/BM25, Hybrid RRF, Filtering)
@@ -168,7 +168,7 @@ def api_client():
 def test_api_root_and_health(api_client):
     r_root = api_client.get("/")
     assert r_root.status_code == 200
-    assert r_root.json() == {"service": "vishnu-rag", "status": "ok"}
+    assert r_root.json() == {"service": "profi", "status": "ok"}
 
     r_health = api_client.get("/health")
     assert r_health.status_code == 200

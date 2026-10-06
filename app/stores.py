@@ -14,6 +14,14 @@ def _match(chunk: Chunk, filters: dict) -> bool:
     return all(str(chunk.metadata.get(k)) == str(v) for k, v in filters.items())
 
 
+def _cosine(a: list[float], b: list[float]) -> float:
+    """True cosine similarity — safe against non-unit-norm vectors."""
+    dot = sum(x * y for x, y in zip(a, b))
+    mag_a = math.sqrt(sum(x * x for x in a)) or 1.0
+    mag_b = math.sqrt(sum(x * x for x in b)) or 1.0
+    return dot / (mag_a * mag_b)
+
+
 class VectorStore(Protocol):
     async def upsert(self, chunks: list[Chunk], vectors: list[list[float]]) -> None: ...
     async def search_dense(self, vector: list[float], k: int, filters: dict) -> list[Hit]: ...
@@ -31,7 +39,7 @@ class MemoryStore:
             self.chunks[c.chunk_id], self.vecs[c.chunk_id] = c, v
 
     async def search_dense(self, vector, k, filters):
-        hits = [Hit(chunk=c, score=sum(a * b for a, b in zip(vector, self.vecs[cid])))
+        hits = [Hit(chunk=c, score=_cosine(vector, self.vecs[cid]))
                 for cid, c in self.chunks.items() if _match(c, filters)]
         return sorted(hits, key=lambda h: (-h.score, h.chunk.chunk_id))[:k]
 

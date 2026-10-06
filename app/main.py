@@ -14,8 +14,6 @@ def get_rag_service(settings: Settings = Depends(get_settings)) -> RagService:
     Supports clean testing via app.dependency_overrides[get_rag_service] = lambda: mock_svc.
     """
     global _svc
-    if _svc is not None and _svc.s == settings:
-        return _svc
     if _svc is None or _svc.s != settings:
         _svc = RagService(settings)
     return _svc
@@ -44,7 +42,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Vishnu RAG", lifespan=lifespan)
+app = FastAPI(title="Profi", lifespan=lifespan)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -54,7 +52,7 @@ async def favicon():
 
 @app.get("/")
 async def root():
-    return {"service": "vishnu-rag", "status": "ok"}
+    return {"service": "profi", "status": "ok"}
 
 
 @app.get("/health")

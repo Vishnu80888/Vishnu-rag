@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    llm_provider: str = "local"
+    llm_provider: str = "openai_compatible"
     embedding_provider: str = "local"
     vector_store_provider: str = "memory"
     openai_base_url: str = "http://localhost:1234/v1"
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_path: str = ""  # embedded local Qdrant (pure Python, no server/Docker)
-    collection_name: str = "vishnu_rag"
+    collection_name: str = "profi_rag"
     chunk_size: int = 800
     chunk_overlap: int = 100
     top_k: int = 5
